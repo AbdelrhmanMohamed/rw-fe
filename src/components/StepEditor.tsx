@@ -9,15 +9,20 @@ import { useWorkflowStore } from "../store/workflowStore";
 
 export const StepEditor: React.FC = () => {
   const {
-    selectedStep,
+    workflow,
+    selectedStepId,
     updateStep,
     addMapping,
     updateMapping,
     deleteMapping,
     toggleStepEditor,
-    deselectStep,
+    deselectStepId,
     openStepEditor,
   } = useWorkflowStore();
+
+  const selectedStep = useMemo(() => {
+    return (workflow?.steps || []).find((s) => s.id === selectedStepId);
+  }, [workflow?.steps, selectedStepId]);
 
   const [newMapping, setNewMapping] = useState({
     source: "",
@@ -68,7 +73,7 @@ export const StepEditor: React.FC = () => {
   };
 
   const onClose = () => {
-    deselectStep();
+    deselectStepId();
     toggleStepEditor();
   };
 

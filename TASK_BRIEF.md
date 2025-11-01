@@ -56,26 +56,25 @@ The application will start with placeholder components. You'll need to implement
 
 ### Must-Have Features
 
-- [ ] As a user, I can add a new step to my workflow
-- [ ] As a user, I can delete a step from my workflow
-- [ ] As a user, I can see all steps in my workflow
-- [ ] As a user, when I delete a step, all mappings referencing it are removed
-- [ ] As a user, I can save my workflow and load it later
-- [ ] As a user, I can reorder steps in my workflow
-- [ ] As a user, when I reorder steps, all mappings are updated to new positions
-- [ ] As a user, I can edit step properties
-- [ ] As a user, I can add mappings between steps
-- [ ] As a user, I can see which steps reference which other steps
+- [ ✓ ] As a user, I can add a new step to my workflow
+- [ ✓ ] As a user, I can delete a step from my workflow
+- [ ✓ ] As a user, I can see all steps in my workflow
+- [ ✓ ] As a user, when I delete a step, all mappings referencing it are removed
+- [ ✓ ] As a user, I can save my workflow and load it later
 
 ### Should-Have Features
 
-
+- [ ✓ ] As a user, I can reorder steps in my workflow
+- [ ✓ ] As a user, when I reorder steps, all mappings are updated to new positions
+- [ ✓ ] As a user, I can edit step properties
+- [ ✓ ] As a user, I can add mappings between steps
+- [ ✓ ] As a user, I can see which steps reference which other steps
 
 ### Nice-to-Have Features
 
-- [ ] As a user, I can undo/redo my actions
-- [ ] As a user, I can export my workflow as JSON
-- [ ] As a user, I can import a workflow from JSON
+- [ ✓ ] As a user, I can undo/redo my actions
+- [ ✓ ] As a user, I can export my workflow as JSON
+- [ ✓ ] As a user, I can import a workflow from JSON
 - [ ] As a user, I can see a visual representation of my workflow
 - [ ] As a user, I can validate my workflow for errors
 
@@ -91,32 +90,32 @@ The application already includes these interfaces in `src/types/index.ts`:
 
 ```typescript
 enum StepType {
-    API_CALL = "API_CALL",
-    FILTER = "FILTER",
-    TRANSFORM = "TRANSFORM",
-    CONDITION = "CONDITION"
+  API_CALL = "API_CALL",
+  FILTER = "FILTER",
+  TRANSFORM = "TRANSFORM",
+  CONDITION = "CONDITION",
 }
 
 interface Step {
-    id: string;
-    stepNumber: number;
-    type: StepType;
-    name: string;
-    mappings: Mapping[];
-    config: Record<string, any>;
+  id: string;
+  stepNumber: number;
+  type: StepType;
+  name: string;
+  mappings: Mapping[];
+  config: Record<string, any>;
 }
 
 interface Mapping {
-    id: string;
-    source: string; // e.g., "${step_2.response.data}"
-    target: string; // e.g., "request.body.email"
-    dataType: "string" | "number" | "object" | "array";
+  id: string;
+  source: string; // e.g., "${step_2.response.data}"
+  target: string; // e.g., "request.body.email"
+  dataType: "string" | "number" | "object" | "array";
 }
 
 interface Workflow {
-    id: string;
-    name: string;
-    steps: Step[];
+  id: string;
+  name: string;
+  steps: Step[];
 }
 ```
 
@@ -129,17 +128,17 @@ The main challenge is maintaining data integrity when steps are modified:
 **Step Deletion Example:**
 
 - When Step 2 is deleted from a 5-step workflow:
-    - Steps 3, 4, 5 become 2, 3, 4 (step numbers update)
-    - Any mapping referencing step 2 must be removed
-    - Any mapping referencing steps 3+ must be updated to new numbers
-    - Must preserve unique IDs for steps
+  - Steps 3, 4, 5 become 2, 3, 4 (step numbers update)
+  - Any mapping referencing step 2 must be removed
+  - Any mapping referencing steps 3+ must be updated to new numbers
+  - Must preserve unique IDs for steps
 
 **Step Reordering Example:**
 
 - When Step 4 is moved to position 2:
-    - All step numbers must be recalculated
-    - All mappings must be updated to reference new step numbers
-    - `${step_4.response.data}` becomes `${step_2.response.data}`
+  - All step numbers must be recalculated
+  - All mappings must be updated to reference new step numbers
+  - `${step_4.response.data}` becomes `${step_2.response.data}`
 
 ### 2. State Management with Zustand
 
@@ -182,26 +181,29 @@ Use `SAMPLE_DATA.json` as your primary reference for testing and development.
 ### Recommended Development Order
 
 1. **Start with the Zustand Store** (`src/store/workflowStore.ts`)
-    - Implement basic CRUD operations first
-    - Add step deletion logic with mapping cleanup
-    - Add step reordering with mapping updates
-    - Add localStorage persistence
+
+   - Implement basic CRUD operations first
+   - Add step deletion logic with mapping cleanup
+   - Add step reordering with mapping updates
+   - Add localStorage persistence
 
 2. **Build Core Components**
-    - Complete `WorkflowApp` main component
-    - Implement `StepList` with basic display and delete functionality
-    - Add step reordering to `StepList`
-    - Complete `StepEditor` for editing step properties
+
+   - Complete `WorkflowApp` main component
+   - Implement `StepList` with basic display and delete functionality
+   - Add step reordering to `StepList`
+   - Complete `StepEditor` for editing step properties
 
 3. **Add Advanced Features**
-    - Implement mapping management
-    - Add validation and error handling
-    - Test with sample data scenarios
+
+   - Implement mapping management
+   - Add validation and error handling
+   - Test with sample data scenarios
 
 4. **Polish & Testing**
-    - Add responsive design with Tailwind CSS
-    - Test edge cases from sample data
-    - Add proper error boundaries and loading states
+   - Add responsive design with Tailwind CSS
+   - Test edge cases from sample data
+   - Add proper error boundaries and loading states
 
 ### Key Implementation Notes
 
@@ -252,10 +254,10 @@ Use `SAMPLE_DATA.json` as your primary reference for testing and development.
 2. **Implement** the required functionality
 3. **Test** your implementation with the provided sample data
 4. **Create a README** with:
-    - Setup instructions
-    - Brief explanation of your approach
-    - Any trade-offs or assumptions made
-    - How to test the key features
+   - Setup instructions
+   - Brief explanation of your approach
+   - Any trade-offs or assumptions made
+   - How to test the key features
 5. **Submit** the repository link or zip file
 
 ## Questions?

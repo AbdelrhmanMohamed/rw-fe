@@ -8,6 +8,7 @@ interface IconButtonProps {
   "aria-label": string;
   icon: React.ReactNode;
   className?: string;
+  title?: string;
 }
 
 export const IconButton: React.FC<IconButtonProps> = ({
@@ -17,6 +18,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
   "aria-label": ariaLabel,
   icon,
   className = "",
+  title,
 }) => {
   const variantMap = {
     primary: "primary",
@@ -33,6 +35,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
       onClick={onClick}
       aria-label={ariaLabel}
       className={`p-2 flex items-center justify-center ${className}`}
+      title={title}
     >
       <div className="w-4 h-4">{icon}</div>
     </Button>

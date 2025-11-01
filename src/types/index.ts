@@ -32,7 +32,7 @@ export interface WorkflowState {
   workflow: Workflow | null;
   isLoading: boolean;
   error: string | null;
-  selectedStep: Step | null;
+  selectedStepId: string | null;
   openStepEditor: boolean;
   canUndo: boolean;
   canRedo: boolean;
@@ -54,9 +54,11 @@ export interface WorkflowState {
   deleteMapping: (stepId: string, mappingId: string) => void;
   saveWorkflow: () => void;
   loadWorkflowFromStorage: () => void;
+  exportWorkflowAsJSON: () => void;
+  importWorkflowFromJSON: (file: File) => void;
   clearError: () => void;
-  selectStep: (step: Step) => void;
-  deselectStep: () => void;
+  selectStepId: (stepId: string) => void;
+  deselectStepId: () => void;
   toggleStepEditor: () => void;
   undo: () => void;
   redo: () => void;

@@ -1,14 +1,39 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Step as StepComponent } from "./Step";
 import { ClipboardIcon } from "./Icons";
 import { useWorkflowStore } from "../store/workflowStore";
 
 export const StepList: React.FC = () => {
-  const { workflow } = useWorkflowStore();
+  const { workflow, reorderSteps } = useWorkflowStore();
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const steps = useMemo(() => workflow?.steps || [], [workflow?.steps]);
+
+  const handleDragStart = (e: React.DragEvent, index: number | null) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number | null) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index || index === null)
+      return;
+
+    const newSteps = [...steps];
+    const draggedStep = newSteps[draggedIndex];
+    newSteps.splice(draggedIndex, 1);
+    newSteps.splice(index, 0, draggedStep);
+
+    const stepIds = newSteps.map((s) => s.id);
+    reorderSteps(stepIds);
+    setDraggedIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
 
   return (
     <div className="text-left bg-slate-50 p-4 rounded-lg border border-slate-200">
@@ -31,6 +56,10 @@ export const StepList: React.FC = () => {
               step={step}
               index={idx}
               totalSteps={steps.length}
+              draggedIndex={draggedIndex}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDragEnd={handleDragEnd}
             />
           ))}
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { Step as StepType } from "../types";
 import { IconButton } from "./ui";
 import {
@@ -18,6 +18,10 @@ interface StepProps {
   step: StepType;
   index: number;
   totalSteps: number;
+  draggedIndex: number | null;
+  onDragStart: (e: React.DragEvent, index: number | null) => void;
+  onDragOver: (e: React.DragEvent, index: number | null) => void;
+  onDragEnd: () => void;
 }
 
 const getStepTypeColor = (type: string): string => {
@@ -39,16 +43,23 @@ const getStepTypeIconColor = (type: string): string => {
   };
   return colors[type] || "from-slate-400 to-slate-600";
 };
-export const Step: React.FC<StepProps> = ({ step, index, totalSteps }) => {
-  const { workflow, reorderSteps, selectStep, deleteStep, toggleStepEditor } =
+export const Step: React.FC<StepProps> = ({
+  step,
+  index,
+  totalSteps,
+  draggedIndex,
+  onDragStart,
+  onDragOver,
+  onDragEnd,
+}) => {
+  const { workflow, reorderSteps, selectStepId, deleteStep, toggleStepEditor } =
     useWorkflowStore();
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const steps = useMemo(() => workflow?.steps || [], [workflow?.steps]);
 
   // handle select step
   const handleSelectStep = () => {
-    selectStep(step);
+    selectStepId(step.id);
     toggleStepEditor();
   };
 
@@ -62,48 +73,23 @@ export const Step: React.FC<StepProps> = ({ step, index, totalSteps }) => {
     reorderSteps(ids);
   };
 
-  const handleDragStart = (e: React.DragEvent, index: number | null) => {
-    setDraggedIndex(index);
-    e.dataTransfer.effectAllowed = "move";
-  };
-
-  const handleDragOver = (e: React.DragEvent, index: number | null) => {
-    e.preventDefault();
-    if (draggedIndex === null || draggedIndex === index || index === null)
-      return;
-
-    const newSteps = [...steps];
-    const draggedStep = newSteps[draggedIndex];
-    newSteps.splice(draggedIndex, 1);
-    newSteps.splice(index, 0, draggedStep);
-
-    const stepIds = newSteps.map((s) => s.id);
-    reorderSteps(stepIds);
-    setDraggedIndex(index);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
-  };
-
   return (
     <div
       draggable
-      onDragStart={(e) => handleDragStart?.(e, index)}
-      onDragOver={(e) => handleDragOver?.(e, index)}
-      onDragEnd={handleDragEnd}
+      onDragStart={(e) => onDragStart?.(e, index)}
+      onDragOver={(e) => onDragOver?.(e, index)}
+      onDragEnd={onDragEnd}
       className={`group bg-white rounded-lg border border-border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden cursor-move ${
         draggedIndex === index ? "opacity-50 scale-95" : ""
       }`}
     >
       <div className="p-5 flex gap-4 items-start">
-        {/* Drag Handle */}
-        <div className="shrink-0 flex items-center justify-center cursor-move group-hover:text-slate-600 text-slate-400 transition-colors">
-          <DragHandleIcon className="w-5 h-5" />
-        </div>
-
         {/* Step Number Badge */}
-        <div className="shrink-0">
+        <div className="shrink-0 flex gap-2 items-center">
+          {/* Drag Handle */}
+          <div className="shrink-0 flex items-center justify-center cursor-move group-hover:text-slate-600 text-slate-400 transition-colors">
+            <DragHandleIcon className="w-5 h-5" />
+          </div>
           <div
             className={`w-10 h-10 rounded-full bg-linear-to-br ${getStepTypeIconColor(
               step.type

@@ -2,6 +2,10 @@
 
 import { create } from "zustand";
 import { WorkflowState, Workflow, Step } from "../types";
+import {
+  exportWorkflowAsJSON,
+  importWorkflowFromJSON,
+} from "../utils/workflowIO";
 
 // TODO: Implement the workflow store
 // This is where you'll manage the workflow state using Zustand
@@ -16,7 +20,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   workflow: null,
   isLoading: false,
   error: null,
-  selectedStep: null,
+  selectedStepId: null,
   openStepEditor: false,
   canUndo: false,
   canRedo: false,
@@ -284,13 +288,31 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     }
   },
 
+  exportWorkflowAsJSON: () => {
+    const workflow = get().workflow;
+    if (!workflow) return;
+    exportWorkflowAsJSON(workflow);
+  },
+  importWorkflowFromJSON: (file: File) => {
+    if (!file) return;
+    importWorkflowFromJSON(
+      file,
+      (workflow) => {
+        get().loadWorkflow(workflow);
+      },
+      (error) => {
+        set({ error });
+      }
+    );
+  },
+
   clearError: () => {
     set({ error: null });
   },
 
   // Select and Deselect Step
-  selectStep: (step: Step) => set({ selectedStep: step }),
-  deselectStep: () => set({ selectedStep: null }),
+  selectStepId: (stepId: string) => set({ selectedStepId: stepId }),
+  deselectStepId: () => set({ selectedStepId: null }),
 
   // Toggle Step Editor
   toggleStepEditor: () =>
