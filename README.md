@@ -163,31 +163,39 @@ Reordering is implemented using native HTML5 drag-and-drop API:
    - **Mitigation**: Uses `replaceAll()` with exact pattern matching (`step_X.`) to avoid false positives
    - **Note**: Mapping validation requires format `${step_N.response...}` in StepEditor
 
-2. **Manual Save to localStorage**:
+2. **Auto-complete for Mappings (Future Enhancement)**
+
+   - **Current Behavior**:  
+     Users manually type mapping sources like `${step_1.response.data.id}` and targets like `request.body.userId`.
+
+   - **Proposed Enhancement**:  
+     Each step should define an **input schema** and **output schema**, allowing the app to provide **auto-complete suggestions** when creating mappings.
+
+   - **Trade-offs**:
+     - ✅ **Pros**:
+       - Greatly improves UX by reducing typing errors.
+       - Enforces data consistency between steps.
+       - Enables type-safe mapping validation.
+     - ❌ **Cons**:
+       - Requires defining schemas for every step type.
+       - Increases implementation complexity — needs a central registry of step input/output models.
+       - Auto-complete logic must track dependencies dynamically (changes in step order or deletion).
+     - **Assumption**:  
+       For the current scope, manual mapping entry is sufficient. Auto-complete can be implemented in the next iteration using schema-based metadata per step type.
+
+3. **Manual Save to localStorage**:
 
    - ✅ **Pros**: No backend required, works offline, user controls when to save
    - ❌ **Cons**: Limited storage (~5-10MB), browser-specific, no sync across devices, manual save required
    - **Assumption**: This is acceptable for a demo/prototype. Production would need backend storage with auto-save
 
-3. **Bounded History (10 entries)**:
-
-   - ✅ **Pros**: Prevents memory bloat, simpler implementation
-   - ❌ **Cons**: Users can't undo beyond 10 operations
-   - **Assumption**: 10 operations is sufficient for most use cases
-
-4. **Client-side Only**:
-
-   - ✅ **Pros**: Fast, no server costs, works offline
-   - ❌ **Cons**: No collaboration, no server-side validation, data loss if localStorage is cleared
-   - **Assumption**: This is a single-user, client-side application
-
-5. **No External UI Libraries**:
+4. **No External UI Libraries**:
 
    - ✅ **Pros**: Full control, smaller bundle, no dependencies
    - ❌ **Cons**: More code to write, must handle accessibility manually
    - **Note**: Custom UI components built with Tailwind CSS for styling
 
-6. **Visual Workflow Representation**:
+5. **Visual Workflow Representation**:
    - ✅ **Current**: List-based view with drag-and-drop reordering
    - ❌ **Missing**: Visual flow diagram showing connections between steps
    - **Recommendation**: For visual flow presentation, consider using **React Flow** (`reactflow`):
