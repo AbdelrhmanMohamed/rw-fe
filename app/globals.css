@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-[var(--background)] text-[var(--foreground)] font-sans;
+  }
+}
+
+@layer components {
+  /* Workflow Step Manager Styles */
+
+  .App {
+    @apply text-center max-w-[1200px] mx-auto p-5;
+  }
+
+  .App-header {
+    @apply mb-2;
+  }
+
+  .App-header h1 {
+    @apply text-gray-800 mb-5;
+  }
+
+  .error {
+    @apply bg-red-50 text-red-700 p-2.5 rounded-md my-2.5 flex justify-between items-center;
+  }
+
+  .error button {
+    @apply bg-transparent border-none text-red-700 text-lg cursor-pointer;
+  }
+
+  .App-main {
+    @apply flex flex-col gap-2;
+  }
+
+  .step-list {
+    @apply bg-gray-100 p-5 rounded-lg text-left;
+  }
+
+  .step-list h3 {
+    @apply mt-0 text-gray-800;
+  }
+
+  .step-editor {
+    @apply bg-blue-50 p-5 rounded-lg text-left;
+  }
+
+  .step-editor h3 {
+    @apply mt-0 text-blue-600;
+  }
+
+  .add-step-form {
+    @apply bg-purple-50 p-5 rounded-lg text-left;
+  }
+
+  .add-step-form h3 {
+    @apply mt-0 text-purple-700;
+  }
+
+  .form-group {
+    @apply mb-4;
+  }
+
+  .form-group label {
+    @apply block mb-1 font-bold text-gray-800;
+  }
+
+  .form-group input,
+  .form-group select {
+    @apply w-full p-2 border border-gray-300 rounded-md text-sm;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus {
+    @apply outline-none border-blue-600 ring-2 ring-blue-200;
+  }
+
+  button {
+    @apply bg-blue-600 text-white border-none px-5 py-2.5 rounded-md cursor-pointer text-sm transition-colors;
+  }
+
+  button:hover {
+    @apply bg-blue-700;
+  }
+
+  button:disabled {
+    @apply bg-gray-300 cursor-not-allowed;
+  }
+}
+
+@layer utilities {
+  @media (max-width: 768px) {
+    .App {
+      @apply p-2.5;
+    }
+
+    .App-main {
+      @apply gap-5;
+    }
+
+    .step-list,
+    .step-editor,
+    .add-step-form {
+      @apply p-4;
+    }
+  }
+}

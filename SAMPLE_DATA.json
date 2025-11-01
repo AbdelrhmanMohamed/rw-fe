@@ -1,0 +1,264 @@
+{
+    "workflow": {
+        "id": "workflow_1",
+        "name": "User Onboarding Flow",
+        "steps": [
+            {
+                "id": "step_1",
+                "stepNumber": 1,
+                "type": "API_CALL",
+                "name": "Create User",
+                "mappings": [],
+                "config": {
+                    "url": "/api/users",
+                    "method": "POST",
+                    "body": {
+                        "name": "John Doe",
+                        "email": "john@example.com"
+                    }
+                }
+            },
+            {
+                "id": "step_2",
+                "stepNumber": 2,
+                "type": "API_CALL",
+                "name": "Send Welcome Email",
+                "mappings": [
+                    {
+                        "id": "mapping_1",
+                        "source": "${step_1.response.data.id}",
+                        "target": "request.body.userId",
+                        "dataType": "string"
+                    },
+                    {
+                        "id": "mapping_2",
+                        "source": "${step_1.response.data.email}",
+                        "target": "request.body.email",
+                        "dataType": "string"
+                    }
+                ],
+                "config": {
+                    "url": "/api/emails/welcome",
+                    "method": "POST"
+                }
+            },
+            {
+                "id": "step_3",
+                "stepNumber": 3,
+                "type": "FILTER",
+                "name": "Check User Status",
+                "mappings": [
+                    {
+                        "id": "mapping_3",
+                        "source": "${step_1.response.data.status}",
+                        "target": "condition.value",
+                        "dataType": "string"
+                    }
+                ],
+                "config": {
+                    "condition": "equals",
+                    "value": "active"
+                }
+            },
+            {
+                "id": "step_4",
+                "stepNumber": 4,
+                "type": "API_CALL",
+                "name": "Assign Role",
+                "mappings": [
+                    {
+                        "id": "mapping_4",
+                        "source": "${step_1.response.data.id}",
+                        "target": "request.body.userId",
+                        "dataType": "string"
+                    },
+                    {
+                        "id": "mapping_5",
+                        "source": "${step_3.response.passed}",
+                        "target": "request.body.role",
+                        "dataType": "string"
+                    }
+                ],
+                "config": {
+                    "url": "/api/users/assign-role",
+                    "method": "PUT"
+                }
+            }
+        ]
+    },
+    "testCases": [
+        {
+            "name": "Delete middle step",
+            "description": "Delete step 2, verify mappings in step 4 are updated",
+            "action": "delete step_2",
+            "expectedResult": {
+                "step_3": {
+                    "stepNumber": 2,
+                    "mappings": []
+                },
+                "step_4": {
+                    "stepNumber": 3,
+                    "mappings": [
+                        {
+                            "source": "${step_1.response.data.id}",
+                            "target": "request.body.userId"
+                        },
+                        {
+                            "source": "${step_2.response.passed}",
+                            "target": "request.body.role"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Delete first step",
+            "description": "Delete step 1, verify all subsequent mappings are removed",
+            "action": "delete step_1",
+            "expectedResult": {
+                "step_2": {
+                    "stepNumber": 1,
+                    "mappings": []
+                },
+                "step_3": {
+                    "stepNumber": 2,
+                    "mappings": []
+                },
+                "step_4": {
+                    "stepNumber": 3,
+                    "mappings": []
+                }
+            }
+        },
+        {
+            "name": "Reorder steps",
+            "description": "Move step 4 to position 2",
+            "action": "reorder step_4 to position 2",
+            "expectedResult": {
+                "step_2": {
+                    "stepNumber": 3,
+                    "mappings": [
+                        {
+                            "source": "${step_1.response.data.id}",
+                            "target": "request.body.userId"
+                        },
+                        {
+                            "source": "${step_1.response.data.email}",
+                            "target": "request.body.email"
+                        }
+                    ]
+                },
+                "step_3": {
+                    "stepNumber": 4,
+                    "mappings": [
+                        {
+                            "source": "${step_1.response.data.status}",
+                            "target": "condition.value"
+                        }
+                    ]
+                },
+                "step_4": {
+                    "stepNumber": 2,
+                    "mappings": [
+                        {
+                            "source": "${step_1.response.data.id}",
+                            "target": "request.body.userId"
+                        },
+                        {
+                            "source": "${step_2.response.passed}",
+                            "target": "request.body.role"
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "edgeCases": [
+        {
+            "name": "Empty workflow",
+            "description": "Workflow with no steps",
+            "data": {
+                "workflow": {
+                    "id": "empty_workflow",
+                    "name": "Empty Workflow",
+                    "steps": []
+                }
+            }
+        },
+        {
+            "name": "Single step",
+            "description": "Workflow with only one step",
+            "data": {
+                "workflow": {
+                    "id": "single_step_workflow",
+                    "name": "Single Step Workflow",
+                    "steps": [
+                        {
+                            "id": "step_1",
+                            "stepNumber": 1,
+                            "type": "API_CALL",
+                            "name": "Single Step",
+                            "mappings": [],
+                            "config": {
+                                "url": "/api/test",
+                                "method": "GET"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Complex mappings",
+            "description": "Workflow with nested object mappings",
+            "data": {
+                "workflow": {
+                    "id": "complex_workflow",
+                    "name": "Complex Mappings",
+                    "steps": [
+                        {
+                            "id": "step_1",
+                            "stepNumber": 1,
+                            "type": "API_CALL",
+                            "name": "Get User Data",
+                            "mappings": [],
+                            "config": {
+                                "url": "/api/users/123",
+                                "method": "GET"
+                            }
+                        },
+                        {
+                            "id": "step_2",
+                            "stepNumber": 2,
+                            "type": "TRANSFORM",
+                            "name": "Process Data",
+                            "mappings": [
+                                {
+                                    "id": "mapping_1",
+                                    "source": "${step_1.response.data.profile.name}",
+                                    "target": "output.fullName",
+                                    "dataType": "string"
+                                },
+                                {
+                                    "id": "mapping_2",
+                                    "source": "${step_1.response.data.profile.address.city}",
+                                    "target": "output.city",
+                                    "dataType": "string"
+                                },
+                                {
+                                    "id": "mapping_3",
+                                    "source": "${step_1.response.data.settings.notifications}",
+                                    "target": "output.notifications",
+                                    "dataType": "object"
+                                }
+                            ],
+                            "config": {
+                                "transformType": "object_restructure"
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}
