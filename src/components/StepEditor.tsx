@@ -84,12 +84,18 @@ export const StepEditor: React.FC = () => {
     updateStep(selectedStep?.id || "", updates);
   };
 
-  const handleUpdateStepConfig = <K extends keyof Step["config"]>(
-    key: K,
-    value: Step["config"][K]
-  ) => {
+  const handleUpdateStepConfig = (key: string, value: string) => {
+    // Try to parse JSON if it looks like JSON, otherwise use as-is
+    let parsedValue: unknown;
+    try {
+      parsedValue = JSON.parse(value);
+    } catch {
+      parsedValue = value;
+    }
+
     const updates: Partial<Step["config"]> = {
-      [key]: value,
+      ...selectedStep?.config,
+      [key]: parsedValue,
     };
     updateStep(selectedStep?.id || "", { config: updates });
   };
@@ -121,6 +127,21 @@ export const StepEditor: React.FC = () => {
       })),
     []
   );
+
+  const getFormattedConfigValue = (key: string): string => {
+    const value = selectedStep?.config?.[key];
+    if (value === null || value === undefined) {
+      return "null";
+    }
+    if (typeof value === "object") {
+      return JSON.stringify(value, null, 2);
+    }
+    return String(value);
+  };
+
+  const isComplexValue = (value: unknown): boolean => {
+    return value !== null && typeof value === "object";
+  };
 
   return (
     <Sheet
@@ -162,6 +183,11 @@ export const StepEditor: React.FC = () => {
 
           <div className="space-y-2">
             {Object.entries(selectedStep?.config || {}).map(([key, value]) => {
+              const isComplex = isComplexValue(value);
+              const displayValue = isComplex
+                ? getFormattedConfigValue(key)
+                : String(value || "");
+
               return (
                 <div key={key} className="flex gap-2 items-center">
                   <Input
@@ -171,7 +197,7 @@ export const StepEditor: React.FC = () => {
                   />
                   <Input
                     className="w-2/3 border border-gray-300 px-2 py-1 rounded-md focus:ring-1 focus:ring-blue-400"
-                    value={value}
+                    value={displayValue}
                     onChange={(e) =>
                       handleUpdateStepConfig(key, e.target.value)
                     }
