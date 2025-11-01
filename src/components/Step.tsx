@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React from "react";
 import { Step as StepType } from "../types";
 import { IconButton } from "./ui";
 import {
@@ -52,10 +52,8 @@ export const Step: React.FC<StepProps> = ({
   onDragOver,
   onDragEnd,
 }) => {
-  const { workflow, reorderSteps, selectStepId, deleteStep, toggleStepEditor } =
+  const { moveStep, selectStepId, deleteStep, toggleStepEditor } =
     useWorkflowStore();
-
-  const steps = useMemo(() => workflow?.steps || [], [workflow?.steps]);
 
   // handle select step
   const handleSelectStep = () => {
@@ -64,13 +62,12 @@ export const Step: React.FC<StepProps> = ({
   };
 
   // Reorder handler (move up/down)
-  const handleMove = (idx: number, dir: -1 | 1) => {
-    const newIdx = idx + dir;
-    if (newIdx < 0 || newIdx >= steps.length) return;
-    const ids = [...steps.map((s) => s.id)];
-    const [moveId] = ids.splice(idx, 1);
-    ids.splice(newIdx, 0, moveId);
-    reorderSteps(ids);
+  const handleMoveUp = () => {
+    moveStep(step?.id, "up");
+  };
+
+  const handleMoveDown = () => {
+    moveStep(step?.id, "down");
   };
 
   return (
@@ -159,14 +156,14 @@ export const Step: React.FC<StepProps> = ({
             <IconButton
               variant="secondary"
               disabled={index === 0}
-              onClick={() => handleMove(index, -1)}
+              onClick={handleMoveUp}
               aria-label="Move up"
               icon={<ChevronUpIcon />}
             />
             <IconButton
               variant="secondary"
               disabled={index === totalSteps - 1}
-              onClick={() => handleMove(index, 1)}
+              onClick={handleMoveDown}
               aria-label="Move down"
               icon={<ChevronDownIcon />}
             />

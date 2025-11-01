@@ -107,7 +107,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       for (const step of originalSteps) {
         if (step.id === deletedStepId) continue; // Skip the deleted step
 
-        // Update the mappings in the same loop
+        // Update the mappings
         const filteredMappings = step.mappings
           .filter((m) => !m.source.includes(`step_${deletedIndex}`))
           .map((m) => {
@@ -139,50 +139,157 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
 
       const originalSteps = workflow.steps;
 
-      // Create a map of id to new number
-      const idToNewNum: Record<string, number> = {};
-      stepIds.forEach((id, idx) => {
-        idToNewNum[id] = idx + 1;
+      // Validate that all step IDs are present and the count matches
+      if (
+        stepIds.length !== originalSteps.length ||
+        !stepIds.every((id) => originalSteps.some((step) => step.id === id))
+      ) {
+        return state; // Invalid reorder, return unchanged
+      }
+
+      // Create a map of step ID to step for quick lookup
+      const stepMap = new Map(originalSteps.map((step) => [step.id, step]));
+
+      // Reorder steps according to stepIds array
+      const reorderedSteps: Step[] = stepIds.map((id, index) => {
+        const step = stepMap.get(id);
+        if (!step) return step!; // This shouldn't happen due to validation above
+
+        // Update step number to match new position (1-based)
+        return {
+          ...step,
+          stepNumber: index + 1,
+        };
       });
 
-      // Create a new list of steps in the same order as stepIds
-      const reorderedSteps: Step[] = [];
+      // Create a mapping from old step numbers to new step numbers
+      const stepNumberMap = new Map<number, number>();
+      originalSteps.forEach((originalStep) => {
+        const newIndex = reorderedSteps.findIndex(
+          (s) => s.id === originalStep.id
+        );
+        if (newIndex !== -1) {
+          const oldStepNumber = originalStep.stepNumber;
+          const newStepNumber = newIndex + 1;
+          if (oldStepNumber !== newStepNumber) {
+            stepNumberMap.set(oldStepNumber, newStepNumber);
+          }
+        }
+      });
 
-      for (let idx = 0; idx < stepIds.length; idx++) {
-        const id = stepIds[idx];
-        const oldStep = originalSteps.find((s) => s.id === id);
-        if (!oldStep) continue;
-
-        // Update each mapping in the same loop
-        const updatedMappings = oldStep.mappings.map((mapping) => {
+      // Update all mappings in all steps that reference reordered step numbers
+      // Use a two-pass approach to avoid conflicts when swapping step numbers:
+      // First pass: replace with temporary placeholders
+      // Second pass: replace placeholders with final step numbers
+      const finalSteps = reorderedSteps.map((step) => {
+        const updatedMappings = step.mappings.map((mapping) => {
           let newSource = mapping.source;
 
-          // Prevent nested replace (like deleteStep)
-          originalSteps.forEach((oldS) => {
-            const regex = new RegExp(`\\$\\{${oldS.id}\\.`, "g");
-            newSource = newSource.replaceAll(regex, `\u0001${oldS.id}.\u0001`);
+          // First pass: replace old step numbers with temporary placeholders
+          stepNumberMap.forEach((newStepNumber, oldStepNumber) => {
+            if (newSource.includes(`step_${oldStepNumber}.`)) {
+              newSource = newSource.replaceAll(
+                `step_${oldStepNumber}.`,
+                `__TEMP_${newStepNumber}__.`
+              );
+            }
           });
 
-          // Replace the old id with the new step_X according to the new order
-          Object.entries(idToNewNum).forEach(([oldId, newNum]) => {
+          // Second pass: replace placeholders with final step numbers
+          stepNumberMap.forEach((newStepNumber) => {
             newSource = newSource.replaceAll(
-              `\u0001${oldId}.`,
-              `step_${newNum}.`
+              `__TEMP_${newStepNumber}__.`,
+              `step_${newStepNumber}.`
             );
           });
 
-          newSource = newSource.replaceAll(/\u0001/g, "");
           return { ...mapping, source: newSource };
         });
 
-        reorderedSteps.push({
-          ...oldStep,
-          stepNumber: idx + 1,
-          mappings: updatedMappings,
-        });
+        return { ...step, mappings: updatedMappings };
+      });
+
+      const updated: Workflow = { ...workflow, steps: finalSteps };
+      get().pushToHistory(updated);
+
+      return {
+        workflow: updated,
+      };
+    });
+  },
+
+  moveStep: (stepId, type) => {
+    set((state) => {
+      const workflow = state.workflow;
+      if (!workflow) return state;
+
+      const steps = workflow.steps;
+      const currentIndex = steps.findIndex((s) => s.id === stepId);
+
+      if (currentIndex === -1) return state;
+
+      let newIndex: number;
+      if (type === "up") {
+        if (currentIndex === 0) return state; // Already at top
+        newIndex = currentIndex - 1;
+      } else {
+        // type === "down"
+        if (currentIndex === steps.length - 1) return state; // Already at bottom
+        newIndex = currentIndex + 1;
       }
 
-      const updated: Workflow = { ...workflow, steps: reorderedSteps };
+      // Get the step numbers before swapping (these are 1-based, matching array index + 1)
+      const currentStep = steps[currentIndex];
+      const targetStep = steps[newIndex];
+      const oldCurrentStepNumber = currentStep.stepNumber;
+      const oldTargetStepNumber = targetStep.stepNumber;
+
+      // Create new steps array with swapped positions
+      const updatedSteps = [...steps];
+      [updatedSteps[currentIndex], updatedSteps[newIndex]] = [
+        updatedSteps[newIndex],
+        updatedSteps[currentIndex],
+      ];
+
+      // Update step numbers to match their new positions (stepNumber = index + 1)
+      // After swap: step at currentIndex is now at position currentIndex + 1
+      //             step at newIndex is now at position newIndex + 1
+      updatedSteps[currentIndex] = {
+        ...updatedSteps[currentIndex],
+        stepNumber: currentIndex + 1,
+      };
+      updatedSteps[newIndex] = {
+        ...updatedSteps[newIndex],
+        stepNumber: newIndex + 1,
+      };
+
+      // Update all mappings in all steps that reference the swapped step numbers
+      const finalSteps = updatedSteps.map((step) => {
+        const updatedMappings = step.mappings.map((mapping) => {
+          let newSource = mapping.source;
+
+          // Replace references to swap the step numbers
+          // If a mapping references oldCurrentStepNumber, it should now reference oldTargetStepNumber
+          // If a mapping references oldTargetStepNumber, it should now reference oldCurrentStepNumber
+          if (newSource.includes(`step_${oldCurrentStepNumber}.`)) {
+            newSource = newSource.replaceAll(
+              `step_${oldCurrentStepNumber}.`,
+              `step_${oldTargetStepNumber}.`
+            );
+          } else if (newSource.includes(`step_${oldTargetStepNumber}.`)) {
+            newSource = newSource.replaceAll(
+              `step_${oldTargetStepNumber}.`,
+              `step_${oldCurrentStepNumber}.`
+            );
+          }
+
+          return { ...mapping, source: newSource };
+        });
+
+        return { ...step, mappings: updatedMappings };
+      });
+
+      const updated: Workflow = { ...workflow, steps: finalSteps };
       get().pushToHistory(updated);
 
       return {
@@ -256,6 +363,11 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       };
     }),
 
+  clearError: () => {
+    set({ error: null });
+  },
+
+  // Save and Load Workflow from Storage
   saveWorkflow: () => {
     const state = get();
     if (!state.workflow) return;
@@ -265,7 +377,6 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       set({ error: String(error) });
     }
   },
-
   loadWorkflowFromStorage: () => {
     set({ isLoading: true });
     try {
@@ -288,6 +399,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     }
   },
 
+  // Export and Import Workflow as JSON
   exportWorkflowAsJSON: () => {
     const workflow = get().workflow;
     if (!workflow) return;
@@ -304,10 +416,6 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
         set({ error });
       }
     );
-  },
-
-  clearError: () => {
-    set({ error: null });
   },
 
   // Select and Deselect Step

@@ -45,6 +45,7 @@ export interface WorkflowState {
   updateStep: (id: string, updates: Partial<Step>) => void;
   deleteStep: (id: string) => void;
   reorderSteps: (stepIds: string[]) => void;
+  moveStep: (stepId: string, type: "up" | "down") => void;
   addMapping: (stepId: string, mapping: Omit<Mapping, "id">) => void;
   updateMapping: (
     stepId: string,
