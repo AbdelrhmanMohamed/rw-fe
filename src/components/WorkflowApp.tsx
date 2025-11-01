@@ -12,23 +12,11 @@ import WorkflowToolbar from "./WorkflowToolbar";
 import { CloseIcon } from "./Icons";
 
 export default function WorkflowApp() {
-  const {
-    workflow,
-    isLoading,
-    error,
-    loadWorkflow,
-    loadWorkflowFromStorage,
-    clearError,
-  } = useWorkflowStore();
-
-  // Load workflow data on mount: from storage, else use sample
-  useEffect(() => {
-    loadWorkflowFromStorage();
-  }, [loadWorkflowFromStorage]);
+  const { workflow, isLoading, error, loadWorkflow, clearError } =
+    useWorkflowStore();
 
   useEffect(() => {
-    const hasWorkflow = localStorage.getItem("workflow");
-    if (!hasWorkflow) {
+    if (!workflow) {
       const steps = SAMPLE_DATA.workflow.steps.map((step) => ({
         ...step,
         type:
@@ -46,7 +34,7 @@ export default function WorkflowApp() {
       }));
       loadWorkflow({ ...SAMPLE_DATA.workflow, steps });
     }
-  }, [loadWorkflow]);
+  }, [loadWorkflow, workflow]);
 
   return (
     <div className="max-w-5xl mx-auto p-4">

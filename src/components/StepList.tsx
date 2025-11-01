@@ -73,6 +73,7 @@ const EmptyStepList = () => {
     <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
       <div className="text-gray-400 mb-2">
         <ClipboardIcon className="mx-auto h-12 w-12" />
+        <p className="text-gray-500">No steps in workflow</p>
       </div>
     </div>
   );
