@@ -17,16 +17,7 @@ export const StepEditor: React.FC = () => {
     toggleStepEditor,
     deselectStep,
     openStepEditor,
-  } = useWorkflowStore((state) => ({
-    updateStep: state.updateStep,
-    addMapping: state.addMapping,
-    updateMapping: state.updateMapping,
-    deleteMapping: state.deleteMapping,
-    toggleStepEditor: state.toggleStepEditor,
-    deselectStep: state.deselectStep,
-    openStepEditor: state.openStepEditor,
-    selectedStep: state.selectedStep,
-  }));
+  } = useWorkflowStore();
 
   const [newMapping, setNewMapping] = useState({
     source: "",

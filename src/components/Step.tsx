@@ -40,17 +40,17 @@ const getStepTypeIconColor = (type: string): string => {
   return colors[type] || "from-slate-400 to-slate-600";
 };
 export const Step: React.FC<StepProps> = ({ step, index, totalSteps }) => {
-  const { workflow, reorderSteps, selectStep, deleteStep } = useWorkflowStore(
-    (state) => ({
-      workflow: state.workflow,
-      reorderSteps: state.reorderSteps,
-      selectStep: state.selectStep,
-      deleteStep: state.deleteStep,
-    })
-  );
+  const { workflow, reorderSteps, selectStep, deleteStep, toggleStepEditor } =
+    useWorkflowStore();
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const steps = useMemo(() => workflow?.steps || [], [workflow?.steps]);
+
+  // handle select step
+  const handleSelectStep = () => {
+    selectStep(step);
+    toggleStepEditor();
+  };
 
   // Reorder handler (move up/down)
   const handleMove = (idx: number, dir: -1 | 1) => {
@@ -189,7 +189,7 @@ export const Step: React.FC<StepProps> = ({ step, index, totalSteps }) => {
           {/* Edit Button */}
           <IconButton
             variant="primary"
-            onClick={() => selectStep(step)}
+            onClick={handleSelectStep}
             aria-label="Edit step"
             icon={<EditIcon />}
           />

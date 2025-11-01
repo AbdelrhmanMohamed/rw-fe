@@ -9,6 +9,7 @@ import SAMPLE_DATA from "../../SAMPLE_DATA.json";
 import { StepType } from "../types";
 import { Button } from "./ui";
 import WorkflowToolbar from "./WorkflowToolbar";
+import { CloseIcon } from "./Icons";
 
 export default function WorkflowApp() {
   const {
@@ -59,7 +60,7 @@ export default function WorkflowApp() {
               onClick={clearError}
               className="ml-auto text-xl"
             >
-              ×
+              <CloseIcon className="w-4 h-4" />
             </Button>
           </div>
         )}
@@ -81,11 +82,11 @@ export default function WorkflowApp() {
           <>
             {/** workflow toolbar */}
             <WorkflowToolbar />
-            {/** workflow toolbar */}
+            {/** add step form */}
             <AddStepForm />
-            {/** workflow toolbar */}
+            {/** step list */}
             <StepList />
-            {/** workflow toolbar */}
+            {/** step editor */}
             <StepEditor />
           </>
         )}

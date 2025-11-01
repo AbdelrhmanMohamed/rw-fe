@@ -6,7 +6,7 @@ import { ClipboardIcon } from "./Icons";
 import { useWorkflowStore } from "../store/workflowStore";
 
 export const StepList: React.FC = () => {
-  const workflow = useWorkflowStore((state) => state.workflow);
+  const { workflow } = useWorkflowStore();
 
   const steps = useMemo(() => workflow?.steps || [], [workflow?.steps]);
 
