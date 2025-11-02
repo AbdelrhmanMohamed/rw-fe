@@ -17,7 +17,6 @@ export const Sheet: React.FC<SheetProps> = ({
   onClose,
   title,
   children,
-  side = "right",
   width = "w-96",
 }) => {
   useEffect(() => {
