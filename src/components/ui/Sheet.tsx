@@ -34,12 +34,8 @@ export const Sheet: React.FC<SheetProps> = ({
     <>
       {/* Drawer / Sheet */}
       <div
-        className={`fixed top-0 ${side}-0 h-screen bg-white shadow-2xl z-50 flex flex-col transform transition-transform duration-300 ease-in-out ${width} ${
-          isOpen
-            ? "translate-x-0"
-            : side === "right"
-            ? "translate-x-full"
-            : "-translate-x-full"
+        className={`fixed top-0 right-0 h-screen bg-white shadow-2xl z-50 flex flex-col transform transition-transform duration-300 ease-in-out ${width} ${
+          isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         {/* Header */}
